@@ -1,42 +1,79 @@
+import random
+import time
 from pathlib import Path
+import string
 
 import cv2
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
+import loguru
 
 from pdf_parse.interface import BaseInterFace
 
+project_dir = Path(__file__).parent.parent
+
+logger = loguru.logger
+
 
 class PdfBase(BaseInterFace):
-    def __init__(self, model):
-        self.model = YOLO(model)
+    def __init__(self, model: str = None, output_dir: Path = None):
 
-    def mkdir_pic_dir(self, filepath: str):
-        path = Path(filepath)
-        filename = path.stem
-        Path(path.parent / filename).mkdir(exist_ok=True)
-        return path.parent / filename
+        _model = project_dir / "best.pt"
 
-    def save_pic(self, img, dir_name):
+        if model is not None:
+            _model = model
+
+        logger.debug("加载model:{}".format(_model))
+        self.model = YOLO(_model)
+        logger.debug("model加载完成:{}".format(_model))
+
+        self.output_dir = output_dir
+
+        # 使用自定义文件夹替代默认文件夹
+        if output_dir is None:
+            self.output_dir = project_dir / "images"
+
+        # 创建文件夹
+        if not self.output_dir.exists():
+            self.output_dir.mkdir(exist_ok=True)
+
+    def save_pic(self, img, cate_name: str):
         """
         保存图片
         :return:
         """
 
-        cv2.imwrite(str(dir_name), img)
+        cate_dir = self.output_dir / cate_name
 
-    def parse(self, filepath: str, **kwargs) -> list[Results]:
-        dir_path = self.mkdir_pic_dir(filepath)
+        # 创建品名文件夹
+        if not cate_dir.exists():
+            cate_dir.mkdir(exist_ok=True)
 
-        results = self.model.predict(filepath, **kwargs)
-        for result in results:
-            yield self._save_results(dir_path, result)
+        # 文件名
+        name = cate_dir / (str(round(time.time() * 1000)) + "".join(random.choices(string.ascii_letters, k=random.randint(4, 7))))
 
-    def _save_results(self, dir_path, result):
-        pass
+        suffix = "png"
+        cv2.imwrite(f"{str(name)}.{suffix}", img)
+        logger.info(f"[{str(name)}.{suffix}]保存成功！")
 
-    def save(self, filepath: str, output_dir: str = None):
-        raise NotImplemented
+    def predict(self, img_list: list[Path], **kwargs) -> list[Results]:
+        for img in img_list:
+            results = self.model.predict(img, **kwargs)
+            yield results
 
-    def start(self):
-        pass
+    def parse(self, results, **kwargs):
+
+        raise NotImplementedError
+
+    def load_img_list(self, img_dir: str) -> list[Path]:
+        dir_path = Path(img_dir)
+        img_list = dir_path.glob("*.[pPjJ][nNpP][jJgG]")
+        return list(img_list)
+
+    def start(self, img_dir: str = '.'):
+        img_list = self.load_img_list(img_dir)
+
+        for results in self.predict(img_list):
+            for class_name, img in self.parse(results):
+                print(class_name, img)
+                self.save_pic(img, class_name)
