@@ -5,3 +5,5 @@ labelImg/
 __pycache__/
 
 images/
+
+runs/

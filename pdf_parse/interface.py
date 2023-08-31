@@ -5,15 +5,13 @@ from ultralytics.engine.results import Results
 from ultralytics.models import YOLO
 
 
-
-
 class BaseInterFace:
 
     def start(self):
         raise NotImplementedError
 
-    def parse(self, filepath: str, **kwargs) -> list[Results]:
+    def parse(self, result, img, **kwargs) -> list[Results]:
         raise NotImplementedError
 
-    def save(self, filepath: str, output_dir: str = None):
+    def save(self, img, cate_name):
         not NotImplementedError

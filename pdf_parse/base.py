@@ -7,6 +7,7 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 import loguru
+from ddddocr import DdddOcr
 
 from pdf_parse.interface import BaseInterFace
 
@@ -17,6 +18,8 @@ logger = loguru.logger
 
 class PdfBase(BaseInterFace):
     def __init__(self, model: str = None, output_dir: Path = None):
+
+        self.ocr = DdddOcr(show_ad=False, beta=True)
 
         _model = project_dir / "best.pt"
 
@@ -37,7 +40,7 @@ class PdfBase(BaseInterFace):
         if not self.output_dir.exists():
             self.output_dir.mkdir(exist_ok=True)
 
-    def save_pic(self, img, cate_name: str):
+    def save(self, img, cate_name: str):
         """
         保存图片
         :return:
@@ -53,7 +56,8 @@ class PdfBase(BaseInterFace):
         name = cate_dir / (str(round(time.time() * 1000)) + "".join(random.choices(string.ascii_letters, k=random.randint(4, 7))))
 
         suffix = "png"
-        cv2.imwrite(f"{str(name)}.{suffix}", img)
+        # cv2.imwrite(f"{str(name)}.{suffix}", img)
+        cv2.imencode(".png", img)[1].tofile(str(name) + '.png')
         logger.info(f"[{str(name)}.{suffix}]保存成功！")
 
     def predict(self, img_list: list[Path], **kwargs) -> list[Results]:
@@ -61,7 +65,7 @@ class PdfBase(BaseInterFace):
             results = self.model.predict(img, **kwargs)
             yield results
 
-    def parse(self, results, **kwargs):
+    def parse(self, result, **kwargs) -> tuple[str, bytes]:
 
         raise NotImplementedError
 
@@ -74,6 +78,7 @@ class PdfBase(BaseInterFace):
         img_list = self.load_img_list(img_dir)
 
         for results in self.predict(img_list):
-            for class_name, img in self.parse(results):
-                print(class_name, img)
-                self.save_pic(img, class_name)
+            for result in results:
+                if not result: continue
+                for class_name, img in self.parse(result) or []:
+                    self.save(img, class_name)
