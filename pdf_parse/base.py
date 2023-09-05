@@ -4,6 +4,7 @@ from pathlib import Path
 import string
 
 import cv2
+from cnocr import CnOcr
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 import loguru
@@ -19,7 +20,8 @@ logger = loguru.logger
 class PdfBase(BaseInterFace):
     def __init__(self, model: str = None, output_dir: Path = None):
 
-        self.ocr = DdddOcr(show_ad=False, beta=True)
+        # self.ocr = DdddOcr(show_ad=False, beta=True)
+        self.ocr = CnOcr()
 
         _model = project_dir / "best.pt"
 
@@ -68,6 +70,14 @@ class PdfBase(BaseInterFace):
     def parse(self, result, **kwargs) -> tuple[str, bytes]:
 
         raise NotImplementedError
+
+    def img2text(self, img):
+        """
+        使用ocr将图片转为text
+        :param img:
+        :return:
+        """
+        return self.ocr.ocr(img)[0]['text']
 
     def load_img_list(self, img_dir: str) -> list[Path]:
         dir_path = Path(img_dir)

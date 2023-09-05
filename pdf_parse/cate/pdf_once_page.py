@@ -30,7 +30,7 @@ class Col(PdfBase):
                 # 将BGR类型的图片转换为RGB的类型
 
                 # img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-                #
+
                 # img2 = cv2.imencode(".png", img2)[1]
                 # 识别title
                 class_name = self.img2text(img2)
@@ -46,14 +46,14 @@ class Col(PdfBase):
                 })
 
         # 根据定位对应上title和图片
-        if len(titles) != len(images): return
+        # if len(titles) != len(images): return
 
         # 识别图片在同一列
         for title in titles:
             for image in images:
-                if image['pos']['x2'] >= title['pos']['x1'] >= image['pos']['x1'] or image['pos']['x2'] >= title['pos']['x2'] >= image['pos']['x1']:
-                    yield title['title'], image['img']
+                yield title['title'], image['img']
 
 
 if __name__ == '__main__':
-    Col().start(r"C:\Users\Administrator\Downloads\zhongyaotupu")
+    Col().start(r"C:\Users\Administrator\Downloads\4-png")
+    # Col().start(r"C:\Users\Administrator\Downloads\zhongyaotupu")

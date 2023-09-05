@@ -29,11 +29,11 @@ class Row(PdfBase):
 
                 # 将BGR类型的图片转换为RGB的类型
 
-                img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-
-                img2 = cv2.imencode(".png", img2)[1]
+                # img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+                #
+                # img2 = cv2.imencode(".png", img2)[1]
                 # 识别title
-                class_name = self.ocr.classification(img2.tobytes())
+                class_name = self.img2text(img2)
                 titles.append({
                     "title": class_name,
                     "pos": (x1, y1, x2, y2)
