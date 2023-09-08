@@ -65,12 +65,12 @@ class PdfBase(BaseInterFace):
             cate_dir.mkdir(exist_ok=True)
 
         # 文件名
-        name = cate_dir / (str(round(time.time() * 1000)) + "".join(random.choices(string.ascii_letters, k=random.randint(4, 7))))
+        name = cate_dir / f'{tips}{(str(round(time.time() * 1000)) + "".join(random.choices(string.ascii_letters, k=random.randint(4, 7))))}'
 
-        suffix = "png"
+        suffix = ".png"
         # cv2.imwrite(f"{str(name)}.{suffix}", img)
-        cv2.imencode(".png", img)[1].tofile(str(name) + '.png')
-        logger.info(f"[{str(name)}.{suffix}]保存成功！")
+        cv2.imencode(suffix, img)[1].tofile(str(name) + suffix)
+        logger.info(f"[{str(name)}{suffix}]保存成功！")
 
     def predict(self, img_list: list[Path], **kwargs) -> list[Results]:
         for img in img_list:
@@ -87,7 +87,16 @@ class PdfBase(BaseInterFace):
         :param img:
         :return:
         """
-        return self.ocr.ocr(img)[0]['text']
+
+        suffix = ".png"
+        # 灰度化
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # 二值化
+        ret, binary = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY)
+        cv2.imencode(suffix, binary)[1].tofile("".join(random.choices(string.ascii_letters, k=6)) + suffix)
+
+        result = self.ocr.ocr(binary)
+        return "".join(x['text'] for x in result if x['score'] > 0.7)
 
     def load_img_list(self, img_dir: str) -> list[Path]:
         dir_path = Path(img_dir)

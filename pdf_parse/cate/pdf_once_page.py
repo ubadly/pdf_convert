@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 from PIL.Image import Image
@@ -30,13 +32,12 @@ class Col(PdfBase):
             # 存放标题和图片信息
             if class_str == 'title':
 
-                # 将BGR类型的图片转换为RGB的类型
-
-                # img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-
-                # img2 = cv2.imencode(".png", img2)[1]
                 # 识别title
                 class_name = self.img2text(img2)
+
+                if not class_name:
+                    return []
+
                 titles.append({
                     "title": class_name,
                     "pos": {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
@@ -52,7 +53,7 @@ class Col(PdfBase):
         # if len(titles) != len(images): return
 
         # 标注
-        tips = ""
+        tips = Path(result.path).stem
         # 识别图片在同一列
         for title in titles:
             for image in images:
