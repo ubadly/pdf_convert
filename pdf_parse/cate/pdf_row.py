@@ -48,15 +48,18 @@ class Row(PdfBase):
         # 根据定位对应上title和图片
         if len(titles) != len(images): return
 
+        # 标注
+        tips = ""
         # 识别图片在同一行
         for title in titles:
             for image in images:
+
                 if image['pos'][3] >= title['pos'][1] >= image['pos'][1] or image['pos'][3] >= title['pos'][3] >= image['pos'][1]:
                     # print(title, image)
                     # cv2.imshow("title['title']", image['img'])
                     # print("================================================================")
                     # cv2.waitKey(0)
-                    yield title['title'], image['img']
+                    yield title['title'], image['img'], tips
 
 
 if __name__ == '__main__':

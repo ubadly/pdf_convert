@@ -48,11 +48,13 @@ class Col(PdfBase):
         # 根据定位对应上title和图片
         if len(titles) != len(images): return
 
+        # 标注
+        tips = ""
         # 识别图片在同一列
         for title in titles:
             for image in images:
                 if image['pos']['x2'] >= title['pos']['x1'] >= image['pos']['x1'] or image['pos']['x2'] >= title['pos']['x2'] >= image['pos']['x1']:
-                    yield title['title'], image['img']
+                    yield title['title'], image['img'], tips
 
 
 if __name__ == '__main__':

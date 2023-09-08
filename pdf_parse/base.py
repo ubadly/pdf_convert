@@ -1,4 +1,5 @@
 import random
+import re
 import time
 from pathlib import Path
 import string
@@ -18,7 +19,13 @@ logger = loguru.logger
 
 
 class PdfBase(BaseInterFace):
-    def __init__(self, model: str = None, output_dir: Path = None):
+    def __init__(self, model: str = None, output_dir: Path = None, temperature=0.9, save=False):
+
+        # 准确度
+        self.temperature = temperature
+
+        # 保存运行
+        self.is_save = save
 
         # self.ocr = DdddOcr(show_ad=False, beta=True)
         self.ocr = CnOcr()
@@ -42,11 +49,14 @@ class PdfBase(BaseInterFace):
         if not self.output_dir.exists():
             self.output_dir.mkdir(exist_ok=True)
 
-    def save(self, img, cate_name: str):
+    def save(self, img, cate_name: str, tips: str):
         """
         保存图片
         :return:
         """
+
+        # filter cate name
+        cate_name = re.sub(f"[{string.printable}]", "", cate_name)
 
         cate_dir = self.output_dir / cate_name
 
@@ -87,8 +97,10 @@ class PdfBase(BaseInterFace):
     def start(self, img_dir: str = '.'):
         img_list = self.load_img_list(img_dir)
 
-        for results in self.predict(img_list):
+        for results in self.predict(img_list,
+                                    conf=self.temperature,
+                                    save=self.is_save):
             for result in results:
                 if not result: continue
-                for class_name, img in self.parse(result) or []:
-                    self.save(img, class_name)
+                for class_name, img, tips in self.parse(result) or []:
+                    self.save(img, class_name, tips)

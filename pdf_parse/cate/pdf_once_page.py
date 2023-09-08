@@ -7,6 +7,9 @@ from pdf_parse.base import PdfBase
 
 class Col(PdfBase):
 
+    def __init__(self):
+        super().__init__(temperature=0.8, save=True)
+
     def parse(self, result, **kwargs):
         img = result.orig_img
 
@@ -48,12 +51,14 @@ class Col(PdfBase):
         # 根据定位对应上title和图片
         # if len(titles) != len(images): return
 
+        # 标注
+        tips = ""
         # 识别图片在同一列
         for title in titles:
             for image in images:
-                yield title['title'], image['img']
+                yield title['title'], image['img'], tips
 
 
 if __name__ == '__main__':
-    Col().start(r"C:\Users\Administrator\Downloads\4-png")
+    Col().start(r"D:\work\pdf_convert\扫描文件\常用中药饮片识别与应用图谱")
     # Col().start(r"C:\Users\Administrator\Downloads\zhongyaotupu")
